@@ -30,4 +30,5 @@ Each device is assigned a unique device ID. To configure your Arduino code for y
 ## Replace "your-device-id" in the above code with the specific device ID.
 
 ### Please make sure to replace "your-device-id" with your actual device ID throughout the code.
-#### Do not replace are modify the path  (((  String url = "/send/your-device-id/" + String(arValue) + "/" + String(cnValue) + "/" + String(lgValue) + "/" + String(smValue) + "/" + String(raValue) + "/"; )))
+# Important notice
+ Do not replace are modify the path  (((  String url = "/send/your-device-id/" + String(arValue) + "/" + String(cnValue) + "/" + String(lgValue) + "/" + String(smValue) + "/" + String(raValue) + "/"; )))
