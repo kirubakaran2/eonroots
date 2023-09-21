@@ -1,0 +1,251 @@
+from firebase_admin import credentials, db
+from flask import Flask
+from datetime import datetime,timedelta
+import pytz
+import ast
+import firebase_admin
+import requests
+# Initialize the Flask app
+app = Flask(_name_)
+# Initialize Firebase credentials
+cred = credentials.Certificate({
+  "type": "service_account",
+  "project_id": "smartdevice-e2e79",
+  "private_key_id": "eb71476ad6ac291ac9e87de263477c9cf1b9becd",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDtrC3yTitNIt4G\nEClV4X1gCsL8QrD2o/UXyHdiv5jJCXmYLoiUJIroJ+sQSyL+Fzko6JUMqsAX3Xyl\nvH7FfxmLdw+DiXrDziVTFvruMzNoReUQtWimCx7sIYfC8ht6yQGyBhB8aGeMNBYB\nWOnHkGHMsIl9R0RCr9KYMMsZ0XFTDid6DGAqBceMdFNQkLgd8ZwP5YPp4Zx2La8l\nBR54IlKXyYGnytc9ox9Ba0Ju6Y+57/py/sYQn4EBrXzff4lB/z595/BLyHky4rpH\n8siuj/j777DDumasgFsELUYQWA/A0VLgW2lYSLo5uxRXLAniOKmKZCKqixQNq0Xv\nxqQzpqWBAgMBAAECggEAHfGFGWO1S2LS75ceKhJ+YfkBH1iEpJI8CPrJ5cBHTr65\nmc11Chr/gCe1UwhwWGxTGH8S9jVV/bu7HkNdAmNUs9A0fWk29Q/V/n2k8Bk1xxOV\nPDFqxY6dnvjLeqlXgnTsGIJwlcfukcinJBTQYULku23baJPvuuodYWy2TeKoASNH\ncUkRUXaMlSecI+yAecTvDMAiGBhr0vjzt6+3kBJSPAB+pYTVcJWc8lhP5j4owkph\nTsH9opDacibEAFgW5cJwz7aSVm+JLu8ZK8dzV2rvjr8LXvWZ/M0oFX4r5eyZaZRz\nN1I5lcWF48N1a1+/AVvd/CICuK4oBDgMGnyLTl8RRQKBgQD+fnitf3lanU5066tW\nhZjhZKXs9wn37RHUo+0ItOOG3GBldoNnKKrn0S6VreHzDCXCaBPiFDXa2FeBluak\nBtNCz3PcODg+ODkD5PgvrtfYQuPmgsrTuaFIJ2UKZDaVEODdIUO2cjaSPxjEAXaI\nH5l46PcrTTGlB3fy8ehJ5rsD9QKBgQDvFDm926geiCi4Q8dBW2jBr5NequUZ8mKf\nyM2CqpOjnALP/1ihn2G5sv+Ei/KNR1phjdGh85OfI4IU1AgIay4iwicnUo/E9bV7\nuqY6v3vi0NrMcneSMS3YY+bIufOI9aCNEbr1TbuJ9BjBNqUKDAO0fpt0drEh/w9D\nYTA0Vmlv3QKBgQCc28Lx3SIlMdQLyL5Ag/Oo6OpEVje0slBNKgSNW0Dp/KcForh3\nOt+sJoh6BUTBE3mqi4/FxwMysimtXB8odnR8N3WIBLbV0r2Bov0+Fpw/VWs2xuLR\nARdha7ahYwcpdc/DPB+KMndkSLOxC93NJPzpQ14lOF0jBKlv+p5b/nTCiQKBgFZJ\nQXHBZlLmp3Ohmrd+6zcETDbdjOQpc+jhSzK+p5xkASvap71lTZr8/HV1IOxWdUtC\nKQe/ZmcIJLmpsOCA9ly7H/B0PslCOObX/Yi0dVzuLhmdsoQD1d0EaVXGrxueMvzX\nClfgXzAx9gE93KDcpzWsgCSvdcykRnj2CbTJ/zHNAoGASCPC0+73PaTW0V1vLeKu\nqW/8/YNO5f0ISCGpV/o7UPkeA88RDaSKwaYr5MHSrtGP7Hsor4k1O7YyFhr8sUx5\nu+hjzh3e7dCht1qsoDYBNf7bNSCZOnwNowzB0Xqe4dY8YloRXsIvML8o6QmMhM70\ne5D1mfEA2E1UHcfZ8tEZtEU=\n-----END PRIVATE KEY-----\n",
+  "client_email": "firebase-adminsdk-yz8ep@smartdevice-e2e79.iam.gserviceaccount.com",
+  "client_id": "101542286294359985933",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-yz8ep%40smartdevice-e2e79.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
+)
+firebase_admin.initialize_app(cred, {
+    'databaseURL':'https://smartdevice-e2e79-default-rtdb.asia-southeast1.firebasedatabase.app'
+})
+server_timezone = pytz.timezone('Asia/Kolkata')
+def get_formatted_time():
+    current_time = datetime.now(server_timezone)
+    formatted_time = current_time.strftime('%H:%M')  # Format to display only hours and minutes
+    return formatted_time
+def fetch(key):
+
+    ref = db.reference('/devices')
+
+    try:
+
+        data = ref.child(key).get()
+
+        if data:
+            return f'{data}'
+        else:
+            return f'No data found for key {key}'
+    except Exception as e:
+        return f'Error: {e}'
+
+def updateLogCount(key):
+
+    ref = db.reference('/devices/'+key)
+    try:
+
+        data = ref.child('TotalLogs').get()
+
+        data=data+1
+        print(data)
+        ref.child("TotalLogs").set(data)
+
+
+    except Exception as e:
+        print (e)
+        return f'Error: {e}'
+def elapsed_minutes(start_time_str):
+    # Convert the formatted time back to a datetime object
+    start_time = datetime.strptime(start_time_str, '%H:%M')
+
+    # Get the current time
+    end_time_str = get_formatted_time()
+    end_time = datetime.strptime(end_time_str, '%H:%M')
+
+    # Calculate the difference
+    elapsed = end_time - start_time
+
+    # If the elapsed time is negative (e.g., if start_time is 23:50 and end_time is 00:10), 
+    # this means it's the next day, so we adjust the elapsed time
+    if elapsed < timedelta(0):
+        elapsed += timedelta(days=1)
+
+    return int(elapsed.total_seconds() / 60)
+def sendWhatsapp(key):
+    currenttime=current_time()
+    currentDate=current_date()
+    msgString="Log Updated for device "+ key +" at " + currenttime +" " +currentDate
+    url = "https://iot-msg.praveenkumard1.repl.co/send_message?message="+msgString
+
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
+
+        data = response.json()
+        return data
+    except requests.RequestException as e:
+        return ("error")
+def sendNotification(key):
+
+    ref = db.reference('/devices/'+key)
+    ownerid = ref.child('OwnerId').get()
+    print(ownerid)
+    try:
+        ref = db.reference('/users/' + ownerid+ "/Notifications/")
+        currenttime=current_time()
+        currentDate=current_date() # Choose the appropriate reference path
+        ref.push("Log Updated for device "+key+ " at "+currentDate+" "+currenttime)
+
+
+
+
+
+    except Exception as e:
+        print (e)
+        return f'Error: {e}'
+def writeOld(key):
+    ref = db.reference('/devices')
+
+    try:
+
+        data = fetch(key)
+
+        if data is None:
+            data = {}
+
+        # Convert the data to a Python dictionary
+        data_dict = ast.literal_eval(data)
+
+        olderData={}
+        olderData["Rain_Value"]=data_dict["Rain_Value"]
+        olderData["Air_Quality"]=data_dict["Air_Quality"]
+        olderData["Altitude"]=data_dict["Altitude"]
+        olderData["Cng"]=data_dict["Cng"]
+        olderData["Humidity"]=data_dict["Humidity"]
+        olderData["Ldr"]=data_dict["Ldr"]
+        olderData["Lpg"]=data_dict["Lpg"]
+        olderData["Pressure"]=data_dict["Pressure"]
+        olderData["Smoke"]=data_dict["Smoke"]
+        olderData["Temperature"]=data_dict["Temperature"]
+        olderData["CurrentDate"]=data_dict["CurrentDate"]
+        olderData["CurrentTIme"]=data_dict["CurrentTIme"]
+
+
+
+        # Write the updated data back to the database
+        ref.child(key+"/PreviousLogs/").push(olderData)
+
+        return f'Successfully updated data in Firebase for key {key}: {olderData}'
+    except Exception as e:
+        return f'Error updating data: {e}'
+
+def is_pushing_allowed(device_id):
+    ref = db.reference("/devices/"+device_id)
+    print(ref)
+    status = ref.child('TurnedOn').get()
+    heartbeat=ref.child("heartBeat").get()
+    lastUpdatedTime=ref.child("CurrentTIme").get()
+    current_time = get_formatted_time()
+    print("The last updated time is ",lastUpdatedTime)
+    print("heartbeat time is ",heartbeat)
+    print("status is:",status)
+
+    print("Current time :",current_time)
+      # Get the status of the device
+    if status == True and elapsed_minutes(lastUpdatedTime)>=int(heartbeat):
+        auto = ref.child('auto').get()
+        if(auto==True):
+
+            print("Auto is on")
+            return True
+        else:
+
+            # Check if the device status is 'on'
+                current_time = datetime.now(server_timezone).time()
+                schedule = ref.get()
+                if schedule:
+                    start_time = datetime.strptime(schedule.get('StartTime', '00:00'), '%H:%M').time()
+                    end_time = datetime.strptime(schedule.get('EndTime', '23:59'), '%H:%M').time()
+
+                    start_time_2 = datetime.strptime(schedule.get('SecondaryStartTime', '00:00'), '%H:%M').time()
+                    end_time_2 = datetime.strptime(schedule.get('SecondaryEndTime', '23:59'), '%H:%M').time()
+                    print("Start Time :",start_time)
+                    print("End Time :",end_time)
+                    print("Current Time:",current_time)
+                    print("Start Time2 :",start_time_2)
+                    print("End Time2 :",end_time_2)
+                    print("Schedule return:",start_time <= current_time <= end_time)
+                    print("Schedule 2 return:",start_time_2 <= current_time <= end_time_2)
+
+                    return start_time <= current_time <= end_time or start_time_2 <= current_time <= end_time_2
+
+
+    return False  # If status is not 'on', data pushing is not allowed
+def get_push_interval(device_id):
+    ref = db.reference("/devices/"+device_id)
+    schedule = ref.get()
+
+    if schedule:
+        start_time1 = datetime.strptime(schedule.get('StartTime', '00:00'), '%H:%M').time()
+        end_time1 = datetime.strptime(schedule.get('EndTime', '23:59'), '%H:%M').time()
+
+        start_time2 = datetime.strptime(schedule.get('SecondaryStartTime', '00:00'), '%H:%M').time()
+        end_time2 = datetime.strptime(schedule.get('SecondaryEndTime', '23:59'), '%H:%M').time()
+
+        interval_minutes = schedule.get('interval', 10)
+        interval_seconds = interval_minutes * 60
+
+        total_seconds1 = (end_time1.hour - start_time1.hour) * 3600 + (end_time1.minute - start_time1.minute) * 60
+        total_seconds2 = (end_time2.hour - start_time2.hour) * 3600 + (end_time2.minute - start_time2.minute) * 60
+
+        num_intervals = max((total_seconds1 + total_seconds2) // interval_seconds, 1)
+
+        return timedelta(seconds=interval_seconds), num_intervals
+
+    return timedelta(minutes=10), 1  # Default interval is 10 minutes
+ # Default interval is 10 minutes
+def get_push_duration(device_id):
+    ref = db.reference("/devices/"+device_id)  # Reference to the push schedule for the device
+    schedule = ref.get()
+    if schedule:
+        return schedule.get('Duration', 60) * 60  # Convert duration to seconds
+    return 3600  # Default duration is 1 hour
+@app.route('/current_date')
+def current_date():
+
+  current_time = datetime.now(server_timezone)
+
+  formatted_time = current_time.strftime('%Y-%m-%d ')
+  return f'{formatted_time}'
+@app.route('/current_time')
+def current_time():
+    formatted_time = get_formatted_time()
+    return f'{formatted_time}'
+@app.route('/send/<div>/<ar>/<cn>/<lg>/<sm>/<ra>/', methods=['GET', 'POST'])
+def handle_request(div, ar, cn, lg, sm, ra):
+    if is_pushing_allowed(div):
+        writeOld(div)
+        updateLogCount(div)
+
+
+        current_time = get_formatted_time()
+        CurrentDate = current_date()
+        data_set = {'Air_Quality': ar, 'Cng': cn, 'Lpg': lg, 'Smoke': sm, 'Rain_Value': ra, 'CurrentTIme': current_time,"CurrentDate":CurrentDate,}
+        # Set the data directly under the device ID path
+        ref = db.reference('/devices/' + div)  # Choose the appropriate reference path
+        ref.update(data_set)
+        sendNotification(div)
+        # sendWhatsapp(div)
+        return "Data added to device: " + div
+    else:
+        return "Data pushing is not allowed at this time for device: " + div
+if _name_ == '_main_':
+
+    app.run(debug=True)
+    app.run(host='0.0.0.0', port=81)
